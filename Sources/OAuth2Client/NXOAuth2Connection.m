@@ -176,7 +176,7 @@ sendingProgressHandler:(NXOAuth2ConnectionSendingProgressHandler)aSendingProgres
             tokenType = client.tokenType;
         }
         if (tokenType == nil) {
-            tokenType = @"OAuth";
+            tokenType = @"Bearer";
         }
         
         oauthAuthorizationHeader = [NSString stringWithFormat:@"%@ %@", tokenType, client.accessToken.accessToken];

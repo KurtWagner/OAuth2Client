@@ -52,7 +52,21 @@
         jsonDict = dict;
     }
     NSString *expiresIn = [jsonDict objectForKey:@"expires_in"];
-    NSString *anAccessToken = [jsonDict objectForKey:@"access_token"];
+    
+    // some services, e.g, yammer like to be difficult by returning a dictionary object
+    NSString *anAccessToken;
+    NSObject *anAccessTokenObject = [jsonDict objectForKey:@"access_token"];
+    if ([anAccessTokenObject isKindOfClass:[NSDictionary class]]) {
+    	anAccessToken = [((NSDictionary *)anAccessTokenObject) objectForKey:@"access_token"];
+	if (!anAccessToken) {
+		anAccessToken = [((NSDictionary *)anAccessTokenObject) objectForKey:@"token"];
+	}
+    }
+    else
+    {
+    	anAccessToken = (NSString*)anAccessTokenObject;
+    }
+    
     NSString *aRefreshToken = [jsonDict objectForKey:@"refresh_token"];
     NSString *scopeString = [jsonDict objectForKey:@"scope"];
     
@@ -151,7 +165,7 @@
 {
     if (tokenType == nil || [tokenType isEqualToString:@""]) {
         //fall back on OAuth if token type not set
-        return @"OAuth";
+        return @"Bearer";
     } else if ([tokenType isEqualToString:@"bearer"]) {
         //this is for out case sensitive server
         //oauth server should be case insensitive so this should make no difference
