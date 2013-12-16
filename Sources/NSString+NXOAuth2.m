@@ -33,9 +33,10 @@
     NSMutableArray *parameterPairs = [NSMutableArray array];
     for (NSString *key in [parameters allKeys]) {
 	id value = [parameters objectForKey:key];
-	if ([value isKindOfClass:[NSString class]]) {
-		value = [(NSString *)key nxoauth2_URLEncodedString];
+	if (![value isKindOfClass:[NSString class]]) {
+		value = [NSString stringWithFormat:@"%@", value];
 	}
+	value = [(NSString *)key nxoauth2_URLEncodedString];
     
         NSString *pair = [NSString stringWithFormat:@"%@=%@", [key nxoauth2_URLEncodedString], value];
         [parameterPairs addObject:pair];
