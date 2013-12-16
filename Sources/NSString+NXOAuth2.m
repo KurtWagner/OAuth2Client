@@ -36,7 +36,7 @@
 	if (![value isKindOfClass:[NSString class]]) {
 		value = [NSString stringWithFormat:@"%@", value];
 	}
-	value = [(NSString *)key nxoauth2_URLEncodedString];
+	value = [(NSString *)value nxoauth2_URLEncodedString];
     
         NSString *pair = [NSString stringWithFormat:@"%@=%@", [key nxoauth2_URLEncodedString], value];
         [parameterPairs addObject:pair];
