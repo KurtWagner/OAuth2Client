@@ -59,6 +59,8 @@ NSString * const kNXOAuth2AccountStoreAccountType = @"kNXOAuth2AccountStoreAccou
 @property (nonatomic, strong, readwrite) NSMutableDictionary *trustModeHandler;
 @property (nonatomic, strong, readwrite) NSMutableDictionary *trustedCertificatesHandler;
 
+@property (nonatomic) BOOL applicationShouldBeInactive; // used to watch safari restricted
+
 #pragma mark OAuthClient to AccountType Relation
 - (NXOAuth2Client *)pendingOAuthClientForAccountType:(NSString *)accountType;
 - (NSString *)accountTypeOfPendingOAuthClient:(NXOAuth2Client *)oauthClient;
@@ -118,6 +120,11 @@ NSString * const kNXOAuth2AccountStoreAccountType = @"kNXOAuth2AccountStoreAccou
                                                  selector:@selector(accountDidLoseAccessToken:)
                                                      name:NXOAuth2AccountDidLoseAccessTokenNotification
                                                    object:nil];
+						   
+	[[NSNotificationCenter defaultCenter] addObserver:self
+						 selector:@selector(applicationWillResignActive:)
+						     name:UIApplicationWillResignActiveNotification
+					           object:nil];
     }
     return self;
 }
@@ -455,6 +462,8 @@ NSString * const kNXOAuth2AccountStoreAccountType = @"kNXOAuth2AccountStoreAccou
     NSURL *preparedURL = [client authorizationURLWithRedirectURL:redirectURL];
     
 #if TARGET_OS_IPHONE
+	self.applicationShouldBeInactive = YES;
+	[self performSelector:@selector(applicationVerifyShouldBeInactive) withObject:self afterDelay:1.f];
         [[UIApplication sharedApplication] openURL:preparedURL];
 #else
         [[NSWorkspace sharedWorkspace] openURL:preparedURL];
@@ -565,6 +574,22 @@ NSString * const kNXOAuth2AccountStoreAccountType = @"kNXOAuth2AccountStoreAccou
 {
     NSLog(@"Removing account with id '%@' from account store because it lost its access token.", [aNotification.object identifier]);
     [self removeAccount:aNotification.object];
+}
+
+- (void)applicationWillResignActive:(NSNotification *)aNotification;
+{
+	self.applicationShouldBeInactive = NO;
+}
+
+- (void)applicationVerifyShouldBeInactive {
+	if (self.applicationShouldBeInactive) {
+		[[[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Failed to open login URL", nil)
+		                            message:NSLocalizedString(@"Please ensure that Safari is enabled.", nil)
+					   delegate:nil
+			          cancelButtonTitle:NSLocalizedString(@"OK", nil)
+				  otherButtonTitles:nil, nil] show];
+		self.applicationShouldBeInactive = NO;
+	}
 }
 
 #pragma mark Keychain Support
